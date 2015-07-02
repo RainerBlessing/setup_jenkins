@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>Create a snapshot build of the assembly.</description>
+  <displayName>Assembly snapshot build</displayName>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <EnvInjectJobProperty plugin="envinject@1.90">
+      <info>
+        <propertiesContent>COMPONENT_SET=com.corporate.set.componentset
+COMPONENT_SET_VERSION=1.0.0.0</propertiesContent>
+        <loadFilesFromMaster>false</loadFilesFromMaster>
+      </info>
+      <on>true</on>
+      <keepJenkinsSystemVariables>true</keepJenkinsSystemVariables>
+      <keepBuildVariables>true</keepBuildVariables>
+      <overrideBuildParameters>false</overrideBuildParameters>
+      <contributors/>
+    </EnvInjectJobProperty>
+  </properties>
+  <scm class="hudson.scm.SubversionSCM" plugin="subversion@1.54">
+    <locations>
+      <hudson.scm.SubversionSCM_-ModuleLocation>
+        <remote>svn://localhost/customproject/assemblies/assembly/trunk</remote>
+        <local>assembly-snapshot</local>
+        <depthOption>infinity</depthOption>
+        <ignoreExternalsOption>false</ignoreExternalsOption>
+      </hudson.scm.SubversionSCM_-ModuleLocation>
+      <hudson.scm.SubversionSCM_-ModuleLocation>
+        <remote>svn://localhost/customproject/devops/ci_server/host_configs/trunk</remote>
+        <local>host_configs</local>
+        <depthOption>infinity</depthOption>
+        <ignoreExternalsOption>false</ignoreExternalsOption>
+      </hudson.scm.SubversionSCM_-ModuleLocation>
+    </locations>
+    <excludedRegions></excludedRegions>
+    <includedRegions></includedRegions>
+    <excludedUsers></excludedUsers>
+    <excludedRevprop></excludedRevprop>
+    <excludedCommitMessages></excludedCommitMessages>
+    <workspaceUpdater class="hudson.scm.subversion.UpdateUpdater"/>
+    <ignoreDirPropChanges>false</ignoreDirPropChanges>
+    <filterChangelog>false</filterChangelog>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <hudson.triggers.SCMTrigger>
+      <spec>H/5 * * * *</spec>
+      <ignorePostCommitHooks>false</ignorePostCommitHooks>
+    </hudson.triggers.SCMTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>export GRADLE_USER_HOME=${BASE_GRADLE_USER_HOME}/gradle_user_home
+export ENVIRONMENT_PROPS=&quot;${WORKSPACE}/host_configs/ciserver/environment.properties&quot;
+  
+# JENKINS-19222 (NODE_NAME is not defined on master)
+if [ &quot;${NODE_NAME}&quot; != &quot;master&quot; -a &quot;${NODE_NAME}&quot; != &quot;&quot; ]
+then
+  export ENVIRONMENT_PROPS=&quot;${WORKSPACE}/host_configs/${NODE_NAME}/environment.properties&quot;
+fi
+  
+cd assembly-snapshot
+sh ./gradlew clean test publish -PreleaseWithDump=true -PRepoUserLogin=admin -PRepoUserPasswd=$DEPLOY_USER_PASSWORD \
+-PbuildEnvironmentProperties=${ENVIRONMENT_PROPS} -PtestEnvironmentProperties=${ENVIRONMENT_PROPS}</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers>
+    <EnvInjectPasswordWrapper plugin="envinject@1.90">
+      <injectGlobalPasswords>true</injectGlobalPasswords>
+      <maskPasswordParameters>true</maskPasswordParameters>
+      <passwordEntries/>
+    </EnvInjectPasswordWrapper>
+  </buildWrappers>
+</project>

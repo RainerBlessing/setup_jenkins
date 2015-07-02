@@ -1,0 +1,75 @@
+gradle.plugins.all { plugin ->
+	// instanceof or plugins.withType won't work here, because of separate class loaders
+	if (plugin.getClass().name != 'com.intershop.build.plugins.IntershopGradlePlugin') return
+	gradle.corporateRepos {
+		useAllSharedRepos()
+	}
+}
+
+String buildNo = System.getenv('BUILD_NUMBER') ?: new Date().format('yyyyMMddHHmmss')
+ 
+allprojects {
+	
+	String repoPathID = 'snapshots'
+	String revExtension = '-SNAPSHOT'
+	String moduleStatus = 'snapshot'
+	
+	def env = System.getenv()
+	
+	if(env['PUBLISH_STATUS'] && env['PUBLISH_STATUS'] == 'release') {
+		repoPathID = 'releases'
+		moduleStatus = 'release'
+		
+		if(env['BUILD_NO'] && env['BUILD_NO'] != '') {
+			revExtension = env['BUILD_NO']
+		} else {
+			revExtension = ".${buildNo}"
+		}
+	} 
+	
+	beforeEvaluate { project ->
+		
+		if(env['COMPONENT_SET'] && env['COMPONENT_SET_VERSION'] ) {
+			project.ext.set("filter.${env['COMPONENT_SET']}", "${env['COMPONENT_SET_VERSION']}${revExtension}")
+			project.ext.set("version.${env['COMPONENT_SET']}", "${env['COMPONENT_SET_VERSION']}${revExtension}")
+		}
+		
+		// build should be located outside the sources on the CI server
+		String buildPath = project == project.rootProject ? '../build' : '../../build'
+		// set project directory
+		project.buildDir = "${buildPath}/${project.name}"
+		
+		if(moduleStatus == 'release' && project == project.rootProject){
+			task('writeBuildInformation') << {
+				Properties buildProps = new Properties()
+				
+				buildProps.setProperty("release.version", project.version)
+				buildProps.setProperty("release.package", project.group)
+				buildProps.setProperty("release.name", project.name)
+				
+				File targetFile = new File(project.buildDir, 'buildInformation/information.properties')
+				targetFile.parentFile.mkdirs()
+				
+				buildProps.store(targetFile.newWriter(), null)
+			}
+		}
+		
+		// repo configuration for projects
+		corporateRepos {
+			useAllSharedRepos()
+			
+			publishing {
+				if(project.hasProperty('RepoUserLogin') && project.hasProperty('RepoUserPasswd')) {
+					// set in gradle.properties
+					setUsername(project.RepoUserLogin)
+					setPassword(project.RepoUserPasswd)
+				}
+				// the release repository
+				useRepo(repoPathID, revExtension, moduleStatus)
+			}
+			buildscript {
+				useAllSharedRepos()                            
+			}
+		}
+	}
+}
