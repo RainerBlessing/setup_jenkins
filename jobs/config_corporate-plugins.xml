@@ -32,7 +32,7 @@
   <builders>
     <hudson.tasks.Shell>
       <command>cd corporate-plugins
-./gradlew clean publish -PRepoUserLogin=admin -PRepoUserPasswd=$DEPLOY_USER_PASSWORD</command>
+./gradlew clean publish -PRepoUserLogin=$DEPLOY_USER_NAME -PRepoUserPasswd=$DEPLOY_USER_PASSWORD</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
