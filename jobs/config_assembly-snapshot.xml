@@ -65,7 +65,7 @@ then
 fi
   
 cd assembly-snapshot
-sh ./gradlew clean test publish -PreleaseWithDump=true -PRepoUserLogin=admin -PRepoUserPasswd=$DEPLOY_USER_PASSWORD \
+sh ./gradlew clean test publish -PreleaseWithDump=true -PRepoUserLogin=$DEPLOY_USER_NAME -PRepoUserPasswd=$DEPLOY_USER_PASSWORD \
 -PbuildEnvironmentProperties=${ENVIRONMENT_PROPS} -PtestEnvironmentProperties=${ENVIRONMENT_PROPS}</command>
     </hudson.tasks.Shell>
   </builders>
