@@ -38,7 +38,7 @@
     <hudson.tasks.Shell>
       <command>export GRADLE_USER_HOME=${WORKSPACE}/gradle_user_home
 cd p_oracle
-./gradlew clean publish -I init.gradle -PRepoUserLogin=admin -PRepoUserPasswd=$DEPLOY_USER_PASSWORD</command>
+./gradlew clean publish -I init.gradle -PRepoUserLogin=$DEPLOY_USER_NAME -PRepoUserPasswd=$DEPLOY_USER_PASSWORD</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
