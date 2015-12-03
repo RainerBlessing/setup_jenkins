@@ -50,7 +50,7 @@
       <command>export GRADLE_USER_HOME=${BASE_GRADLE_USER_HOME}/gradle_user_home
 
 cd conponentset-snapshot
-sh ./gradlew publish -PRepoUserLogin=admin -PRepoUserPasswd=$DEPLOY_USER_PASSWORD</command>
+sh ./gradlew publish -PRepoUserLogin=$DEPLOY_USER_NAME -PRepoUserPasswd=$DEPLOY_USER_PASSWORD</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers/>
